@@ -24,7 +24,7 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       group-id: default
       properties:
-        spring.json.trusted.packages: "henrotaym.env.*"
+        spring.json.trusted.packages: "pitmotion.env.*"
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer

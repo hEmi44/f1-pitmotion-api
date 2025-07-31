@@ -8,6 +8,9 @@ case "$1" in
   --scheduler)
     profiles="$profiles=scheduler"
     ;;
+  --import)
+    profiles="$profiles=import"
+    ;;
   *)
     profiles="$profiles=http"
     ;;

@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -e
+
+export PGPASSWORD="$POSTGRES_PASSWORD"
+
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
+    SELECT 'CREATE DATABASE "$DB_DATABASE_TEST"' 
+      WHERE NOT EXISTS (
+        SELECT FROM pg_database WHERE datname = '$DB_DATABASE_TEST'
+      )\gexec;
+
+    GRANT ALL PRIVILEGES ON DATABASE "$DB_DATABASE_TEST" TO "$POSTGRES_USER";
+EOSQL

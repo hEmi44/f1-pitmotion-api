@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+
+  <changeSet id="main_migration" author="f1pulse">
+
+    <createSequence sequenceName="drivers_seq" startValue="1"/>
+    <createSequence sequenceName="championships_seq" startValue="1"/>
+    <createSequence sequenceName="driver_seasons_seq" startValue="1"/>
+    <createSequence sequenceName="session_types_seq" startValue="1"/>
+    <createSequence sequenceName="countries_seq" startValue="1"/>
+    <createSequence sequenceName="teams_seq" startValue="1"/>
+    <createSequence sequenceName="team_seasons_seq" startValue="1"/>
+    <createSequence sequenceName="grand_prix_seq" startValue="1"/>
+    <createSequence sequenceName="gp_sessions_seq" startValue="1"/>
+    <createSequence sequenceName="sessions_results_seq" startValue="1"/>
+    <createSequence sequenceName="circuits_seq" startValue="1"/>
+    <createSequence sequenceName="users_seq" startValue="1"/>
+
+    <createTable tableName="drivers">
+      <column name="id" type="BIGINT" defaultValueSequenceNext="drivers_seq">
+        <constraints primaryKey="true"/>
+      </column>
+      <column name="name" type="VARCHAR(255)"/>
+      <column name="surname" type="VARCHAR(255)"/>
+      <column name="birthday" type="DATE"/>
+      <column name="short_name" type="VARCHAR(255)"/>
+      <column name="driver_code" type="VARCHAR(50)"/>
+      <column name="url" type="VARCHAR(1024)"/>
+      <column name="country_id" type="BIGINT"/>
+    </createTable>
+
+    <createTable tableName="championships">
+      <column name="id" type="BIGINT" defaultValueSequenceNext="championships_seq">
+        <constraints primaryKey="true"/>
+      </column>
+      <column name="name" type="VARCHAR(255)"/>
+      <column name="year" type="INTEGER"/>
+      <column name="championship_code" type="VARCHAR(50)"/>
+      <column name="url" type="VARCHAR(1024)"/>
+    </createTable>
+
+    <createTable tableName="driver_seasons">
+      <column name="id" type="BIGINT" defaultValueSequenceNext="driver_seasons_seq">
+        <constraints primaryKey="true"/>
+      </column>
+      <column name="points" type="INTEGER"/>
+      <column name="standings" type="INTEGER"/>
+      <column name="wins" type="INTEGER"/>
+      <column name="driver_number" type="VARCHAR(255)"/>
+      <column name="driver_id" type="BIGINT"/>
+      <column name="team_season_id" type="BIGINT"/>
+    </createTable>
+
+    <createTable tableName="session_types">
+      <column name="id" type="BIGINT" defaultValueSequenceNext="session_types_seq">
+        <constraints primaryKey="true"/>
+      </column>
+      <column name="name" type="VARCHAR(10)"/>
+    </createTable>
+
+    <createTable tableName="countries">
+      <column name="id" type="BIGINT" defaultValueSequenceNext="countries_seq">
+        <constraints primaryKey="true"/>
+      </column>
+      <column name="name_fr" type="VARCHAR(255)"/>
+      <column name="name_en" type="VARCHAR(255)"/>
+      <column name="code_iso2" type="VARCHAR(2)"/>
+      <column name="code_iso3" type="VARCHAR(3)"/>
+    </createTable>
+
+    <createTable tableName="teams">
+      <column name="id" type="BIGINT" defaultValueSequenceNext="teams_seq">
+        <constraints primaryKey="true"/>
+      </column>
+      <column name="name" type="VARCHAR(255)"/>
+      <column name="first_appearance" type="INTEGER"/>
+      <column name="constructors_championships" type="INTEGER"/>
+      <column name="drivers_championships" type="INTEGER"/>
+      <column name="team_code" type="VARCHAR(50)"/>
+      <column name="url" type="VARCHAR(1024)"/>
+      <column name="country_id" type="BIGINT"/>
+    </createTable>
+
+    <createTable tableName="team_seasons">
+      <column name="id" type="BIGINT" defaultValueSequenceNext="team_seasons_seq">
+        <constraints primaryKey="true"/>
+      </column>
+      <column name="points" type="INTEGER"/>
+      <column name="standings" type="INTEGER"/>
+      <column name="wins" type="INTEGER"/>
+      <column name="team_id" type="BIGINT"/>
+      <column name="championship_id" type="BIGINT"/>
+    </createTable>
+
+    <createTable tableName="grand_prix">
+      <column name="id" type="BIGINT" defaultValueSequenceNext="grand_prix_seq">
+        <constraints primaryKey="true"/>
+      </column>
+      <column name="name" type="VARCHAR(255)"/>
+      <column name="round" type="INTEGER"/>
+      <column name="grand_prix_code" type="VARCHAR(50)"/>
+      <column name="url" type="VARCHAR(1024)"/>
+      <column name="starting_date" type="DATE"/>
+      <column name="ending_date" type="DATE"/>
+      <column name="championship_id" type="BIGINT"/>
+      <column name="circuit_id" type="BIGINT"/>
+    </createTable>
+
+    <createTable tableName="gp_sessions">
+      <column name="id" type="BIGINT" defaultValueSequenceNext="gp_sessions_seq">
+        <constraints primaryKey="true"/>
+      </column>
+      <column name="laps" type="INTEGER"/>
+      <column name="date" type="DATE"/>
+      <column name="fast_lap" type="VARCHAR(10)"/>
+      <column name="fast_lap_by" type="BIGINT"/>
+      <column name="type" type="BIGINT"/>
+      <column name="grand_prix_id" type="BIGINT"/>
+    </createTable>
+
+    <createTable tableName="sessions_results">
+      <column name="id" type="BIGINT" defaultValueSequenceNext="sessions_results_seq">
+        <constraints primaryKey="true"/>
+      </column>
+      <column name="time" type="VARCHAR(20)"/>
+      <column name="lap_time" type="VARCHAR(10)"/>
+      <column name="lap_time_seconds" type="INTEGER"/>
+      <column name="position" type="INTEGER"/>
+      <column name="q1_time" type="VARCHAR(10)"/>
+      <column name="q2_time" type="VARCHAR(10)"/>
+      <column name="q3_time" type="VARCHAR(10)"/>
+      <column name="grid_position" type="INTEGER"/>
+      <column name="points" type="INTEGER"/>
+      <column name="grid_starting_position" type="INTEGER"/>
+      <column name="status" type="VARCHAR(50)"/>
+      <column name="gp_session_id" type="BIGINT"/>
+      <column name="driver_season_id" type="BIGINT"/>
+    </createTable>
+
+    <createTable tableName="circuits">
+      <column name="id" type="BIGINT" defaultValueSequenceNext="circuits_seq">
+        <constraints primaryKey="true"/>
+      </column>
+      <column name="name" type="VARCHAR(255)"/>
+      <column name="city" type="VARCHAR(255)"/>
+      <column name="lenght" type="VARCHAR(255)"/>
+      <column name="lap_record" type="INTERVAL"/>
+      <column name="first_participation" type="INTEGER"/>
+      <column name="corners" type="INTEGER"/>
+      <column name="cirecuit_code" type="VARCHAR(50)"/>
+      <column name="fastest_lap_by" type="BIGINT"/>
+      <column name="country_id" type="BIGINT"/>
+      <column name="url" type="VARCHAR(1024)"/>
+    </createTable>
+
+    <createTable tableName="user_gp_tracker">
+      <column name="user_id" type="BIGINT"/>
+      <column name="gp_id" type="BIGINT"/>
+    </createTable>
+
+    <createTable tableName="users">
+      <column name="id" type="BIGINT" defaultValueSequenceNext="users_seq">
+        <constraints primaryKey="true"/>
+      </column>
+      <column name="username" type="VARCHAR(255)"/>
+      <column name="email" type="VARCHAR(255)"/>
+      <column name="password" type="VARCHAR(255)"/>
+      <column name="created_at" type="TIME"/>
+      <column name="role" type="VARCHAR(255)"/>
+    </createTable>
+
+  </changeSet>
+</databaseChangeLog>

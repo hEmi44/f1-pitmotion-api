@@ -20,29 +20,50 @@ services:
       - accessible
     labels:
       - traefik.enable=true
-      - traefik.http.routers.games.rule=Host(`games.henrotaym.ip-ddns.com`)
+      - traefik.http.routers.games.rule=Host(``)
       - traefik.http.routers.games.tls=true
-  mysql:
-    image: "mysql/mysql-server:8.0"
+  # mysql:
+  #   image: "mysql/mysql-server:8.0"
+  #   ports:
+  #     - "${DB_PORT_FORWARD}:${DB_PORT}"
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: "${DB_PASSWORD_ROOT}"
+  #     MYSQL_ROOT_HOST: "%"
+  #     MYSQL_DATABASE: "${DB_DATABASE}"
+  #     MYSQL_USER: "${DB_USERNAME}"
+  #     MYSQL_PASSWORD: "${DB_PASSWORD}"
+  #     MYSQL_DATABASE_TEST: "${DB_DATABASE_TEST}"
+  #   volumes:
+  #     - mysql_data:/var/lib/mysql
+  #     - ./devops/mysql/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh
+  #   networks:
+  #     - app
+  #   healthcheck:
+  #     test: ["CMD", "mysqladmin", "ping", "-p${DB_PASSWORD}"]
+  #     retries: 3
+  #     timeout: 5s
+  #   restart: unless-stopped
+
+  postgres:
+    image: postgres:15
     ports:
-      - "${DB_PORT_FORWARD}:${DB_PORT}"
+      - "${DB_PORT_FORWARD}:5432"
     environment:
-      MYSQL_ROOT_PASSWORD: "${DB_PASSWORD_ROOT}"
-      MYSQL_ROOT_HOST: "%"
-      MYSQL_DATABASE: "${DB_DATABASE}"
-      MYSQL_USER: "${DB_USERNAME}"
-      MYSQL_PASSWORD: "${DB_PASSWORD}"
-      MYSQL_DATABASE_TEST: "${DB_DATABASE_TEST}"
+      POSTGRES_DB: "${DB_DATABASE}"
+      POSTGRES_USER: "${DB_USERNAME}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD}"
     volumes:
-      - mysql_data:/var/lib/mysql
-      - ./devops/mysql/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh
+      - postgres_data:/var/lib/postgresql/data
+      - ./devops/postgres/init-testing-db.sh:/docker-entrypoint-initdb.d/10-init-testing-db.sh
     networks:
       - app
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-p${DB_PASSWORD}"]
-      retries: 3
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME}"]
+      interval: 10s
+      retries: 5
       timeout: 5s
     restart: unless-stopped
+
   kafka:
     image: confluentinc/cp-kafka:7.9.1
     ports:
@@ -79,5 +100,7 @@ volumes:
   mvn_deps:
     driver: local
   kafka_data:
+    driver: local
+  postgres_data:
     driver: local
   
