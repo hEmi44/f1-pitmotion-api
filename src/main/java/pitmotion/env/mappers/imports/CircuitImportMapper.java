@@ -2,55 +2,56 @@ package pitmotion.env.mappers.imports;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import pitmotion.env.debug.Debug;
 import pitmotion.env.entities.Circuit;
-import pitmotion.env.entities.Country;
 import pitmotion.env.http.requests.imports.CircuitImportRequest;
-import pitmotion.env.repositories.CountryRepository;
 
 import java.time.Duration;
-import java.time.format.DateTimeParseException;
 import java.text.Normalizer;
 
 @Component
 @AllArgsConstructor
 public class CircuitImportMapper {
 
-    private static final Logger log = LoggerFactory.getLogger(CircuitImportMapper.class);
-    private final CountryRepository countryRepository;
+    private final CountryResolver countryResolver;
 
-    private static String normalize(String input) {
-        String n = Normalizer.normalize(input == null ? "" : input, Normalizer.Form.NFD);
-        return n.replaceAll("\\p{M}", "").toLowerCase();
+    private Duration parseLapRecord(String s) {
+        String[] parts = s.split(":");
+        if (parts.length != 3) {
+            throw new IllegalArgumentException("Format inattendu pour lapRecord: " + s);
+        }
+        long minutes = Long.parseLong(parts[0]);
+        long seconds = Long.parseLong(parts[1]);
+        long millis = Long.parseLong(parts[2]);
+        return Duration.ofMinutes(minutes)
+                       .plusSeconds(seconds)
+                       .plusMillis(millis);
     }
 
     public Circuit request(CircuitImportRequest req, Circuit target) {
-        Country country = countryRepository.findAll().stream()
-            .filter(c -> normalize(c.getNameFr()).equals(normalize(req.country()))
-                      || normalize(c.getNameEn()).equals(normalize(req.country())))
-            .findFirst()
-            .orElseThrow(() -> new EntityNotFoundException(
-                "Pays introuvable (FR/EN) : " + req.country()
-            ));
-        target.setCountry(country);
+        if (req.country() != null) {
+            target.setCountry(countryResolver.resolve(req.country()));
+        }
 
         target.setCircuitCode(req.circuitCode());
         target.setName(req.name());
         target.setCity(req.city());
-        target.setLenght(req.lenght());
+        target.setLength(req.length());
+
         if (req.lapRecord() != null) {
             try {
-                Duration d = Duration.parse(req.lapRecord());
-                target.setLapRecord(d);
-            } catch (DateTimeParseException e) {
-                log.warn("Impossible de parser lapRecord '{}'", req.lapRecord(), e);
+                Duration parsed = parseLapRecord(req.lapRecord());
+                target.setLapRecord(parsed);
+            } catch (Exception e) {
+                Debug.logger().dump("Impossible de parser lapRecord", req.lapRecord(), e.getMessage());
             }
         }
+
         target.setFirstParticipation(req.firstParticipation());
-        target.setCorners(req.corners());
+        target.setCorners(req.numberOfCorners());
         target.setUrl(req.url());
+
         return target;
     }
 }

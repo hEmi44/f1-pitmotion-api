@@ -1,10 +1,13 @@
 package pitmotion.env.http.requests.wrappers;
 
-import jakarta.validation.Valid;
-import java.util.List;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 import pitmotion.env.http.requests.imports.TeamImportRequest;
 
+import java.util.List;
+
 public record TeamsImportWrapper(
-    @Valid List<TeamImportRequest> teams
+    int limit,
+    int offset,
+    int total,
+    @JsonProperty("teams") List<TeamImportRequest> teams
 ) {}

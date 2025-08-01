@@ -7,13 +7,14 @@ import lombok.*;
 import pitmotion.env.enums.SessionType;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "gp_sessions")
 @AllArgsConstructor @NoArgsConstructor @Getter @Setter
-public class GP_Session {
+public class GpSession {
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "gp_sessions_seq")
   @SequenceGenerator(
@@ -25,6 +26,9 @@ public class GP_Session {
 
   private Integer laps;
   private LocalDate date;
+  @Column(name = "time")
+  private LocalTime time;  
+
   @Column(name = "fast_lap")
   private String fastLap;
 
@@ -33,10 +37,11 @@ public class GP_Session {
   @JsonManagedReference
   private Driver fastLapBy;
 
-  // Passage à l'enum SessionType
   @Enumerated(EnumType.STRING)
   @Column(name = "type", nullable = false)
   private SessionType type;
+
+
 
   @ManyToOne
   @JoinColumn(name = "grand_prix_id")

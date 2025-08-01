@@ -1,6 +1,11 @@
 package pitmotion.env.repositories;
 
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import pitmotion.env.entities.Driver;
 
-public interface DriverRepository extends JpaRepository<Driver, Long> { }
+public interface DriverRepository extends JpaRepository<Driver, Long> {
+    boolean existsByDriverCode(String driverCode);
+    Optional<Driver> findByDriverCode(String driverCode);
+ }

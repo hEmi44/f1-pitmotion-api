@@ -24,19 +24,19 @@ public class Circuit {
 
   private String name;
   private String city;
-  private Integer lenght;
-  @Column(name = "lap_record")
+  private Integer length;
+  @Column(name = "lap_record", columnDefinition = "interval")
   private Duration lapRecord;
   @Column(name = "first_participation")
   private Integer firstParticipation;
   private Integer corners;
-  @Column(name = "cirecuit_code")
+  @Column(name = "circuit_code")
   private String circuitCode;
   
   @ManyToOne
   @JoinColumn(name = "fastest_lap_by")
   @JsonManagedReference
-  private Driver fastestLapBy;
+  private DriverSeason fastestLapBy;
 
   @ManyToOne
   @JoinColumn(name = "country_id")

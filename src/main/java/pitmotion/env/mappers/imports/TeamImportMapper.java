@@ -1,44 +1,29 @@
 package pitmotion.env.mappers.imports;
 
-import jakarta.persistence.EntityNotFoundException;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import pitmotion.env.entities.Team;
-import pitmotion.env.entities.Country;
 import pitmotion.env.http.requests.imports.TeamImportRequest;
-import pitmotion.env.repositories.CountryRepository;
-
-import java.text.Normalizer;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class TeamImportMapper {
 
-    private final CountryRepository countryRepository;
-
-    private static String normalize(String input) {
-        String n = Normalizer.normalize(input == null ? "" : input, Normalizer.Form.NFD);
-        return n.replaceAll("\\p{M}", "").toLowerCase();
-    }
+    private final CountryResolver countryResolver;
 
     public Team request(TeamImportRequest req, Team target) {
         if (req.country() != null) {
-            Country country = countryRepository.findAll().stream()
-                .filter(c -> normalize(c.getNameFr()).equals(normalize(req.country()))
-                          || normalize(c.getNameEn()).equals(normalize(req.country())))
-                .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException(
-                    "Pays introuvable (FR/EN) : " + req.country()
-                ));
-            target.setCountry(country);
+            target.setCountry(countryResolver.resolve(req.country()));
         }
-
+    
         target.setTeamCode(req.teamCode());
         target.setName(req.name());
         target.setFirstAppearance(req.firstAppearance());
-        target.setConstructorsChampionships(req.constructorsChampionships());
-        target.setDriversChampionships(req.driversChampionships());
+        target.setConstructorsChampionships(req.constructorsChampionships() != null ? req.constructorsChampionships() : 0);
+        target.setDriversChampionships(req.driversChampionships() != null ? req.driversChampionships() : 0);
         target.setUrl(req.url());
+    
         return target;
     }
+    
 }

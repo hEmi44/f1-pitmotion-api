@@ -4,20 +4,22 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-import pitmotion.env.services.ImportService;
+
+import pitmotion.env.services.GlobalImportService;
 
 @Component
 @Profile("import")
 public class ImportStartupRunner implements ApplicationRunner {
 
-    private final ImportService importService;
+    private final GlobalImportService importService;
 
-    public ImportStartupRunner(ImportService importService) {
+    public ImportStartupRunner(GlobalImportService importService) {
         this.importService = importService;
     }
 
     @Override
     public void run(ApplicationArguments args) {
-        importService.importAll();
+        // importService.importAll();
+        importService.importYear(2025);
     }
 }

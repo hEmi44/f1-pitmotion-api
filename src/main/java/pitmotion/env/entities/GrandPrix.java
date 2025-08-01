@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +33,13 @@ public class GrandPrix {
   @Column(name = "ending_date")
   private LocalDate endingDate;
 
+  @Column(name = "starting_time")
+  private LocalTime startingTime;
+
+  @Column(name = "ending_time")
+  private LocalTime endingTime;
+
+
   @ManyToOne
   @JoinColumn(name = "championship_id")
   @JsonManagedReference
@@ -44,7 +52,7 @@ public class GrandPrix {
 
   @OneToMany(mappedBy = "grandPrix", cascade = CascadeType.ALL)
   @JsonBackReference
-  private List<GP_Session> sessions = new ArrayList<>();
+  private List<GpSession> sessions = new ArrayList<>();
 
   @ManyToMany(mappedBy = "trackedGrandPrix")
   @JsonBackReference

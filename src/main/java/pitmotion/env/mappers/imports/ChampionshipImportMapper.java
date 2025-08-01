@@ -14,6 +14,7 @@ public class ChampionshipImportMapper {
         target.setName(req.name());
         target.setYear(req.year());
         target.setUrl(req.url());
+
         return target;
     }
 }

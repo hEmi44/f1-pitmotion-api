@@ -8,10 +8,10 @@
 
   <changeSet id="main_migration" author="f1pulse">
 
+    <!-- Sequences -->
     <createSequence sequenceName="drivers_seq" startValue="1"/>
     <createSequence sequenceName="championships_seq" startValue="1"/>
     <createSequence sequenceName="driver_seasons_seq" startValue="1"/>
-    <createSequence sequenceName="session_types_seq" startValue="1"/>
     <createSequence sequenceName="countries_seq" startValue="1"/>
     <createSequence sequenceName="teams_seq" startValue="1"/>
     <createSequence sequenceName="team_seasons_seq" startValue="1"/>
@@ -21,6 +21,7 @@
     <createSequence sequenceName="circuits_seq" startValue="1"/>
     <createSequence sequenceName="users_seq" startValue="1"/>
 
+    <!-- Tables -->
     <createTable tableName="drivers">
       <column name="id" type="BIGINT" defaultValueSequenceNext="drivers_seq">
         <constraints primaryKey="true"/>
@@ -54,13 +55,6 @@
       <column name="driver_number" type="VARCHAR(255)"/>
       <column name="driver_id" type="BIGINT"/>
       <column name="team_season_id" type="BIGINT"/>
-    </createTable>
-
-    <createTable tableName="session_types">
-      <column name="id" type="BIGINT" defaultValueSequenceNext="session_types_seq">
-        <constraints primaryKey="true"/>
-      </column>
-      <column name="name" type="VARCHAR(10)"/>
     </createTable>
 
     <createTable tableName="countries">
@@ -106,7 +100,9 @@
       <column name="grand_prix_code" type="VARCHAR(50)"/>
       <column name="url" type="VARCHAR(1024)"/>
       <column name="starting_date" type="DATE"/>
+      <column name="starting_time" type="TIME"/>
       <column name="ending_date" type="DATE"/>
+      <column name="ending_time" type="TIME"/>    
       <column name="championship_id" type="BIGINT"/>
       <column name="circuit_id" type="BIGINT"/>
     </createTable>
@@ -117,9 +113,10 @@
       </column>
       <column name="laps" type="INTEGER"/>
       <column name="date" type="DATE"/>
+      <column name="time" type="TIME"/>
       <column name="fast_lap" type="VARCHAR(10)"/>
       <column name="fast_lap_by" type="BIGINT"/>
-      <column name="type" type="BIGINT"/>
+      <column name="type" type="VARCHAR(20)"/>
       <column name="grand_prix_id" type="BIGINT"/>
     </createTable>
 
@@ -148,11 +145,11 @@
       </column>
       <column name="name" type="VARCHAR(255)"/>
       <column name="city" type="VARCHAR(255)"/>
-      <column name="lenght" type="VARCHAR(255)"/>
+      <column name="length" type="VARCHAR(255)"/>
       <column name="lap_record" type="INTERVAL"/>
       <column name="first_participation" type="INTEGER"/>
       <column name="corners" type="INTEGER"/>
-      <column name="cirecuit_code" type="VARCHAR(50)"/>
+      <column name="circuit_code" type="VARCHAR(50)"/>
       <column name="fastest_lap_by" type="BIGINT"/>
       <column name="country_id" type="BIGINT"/>
       <column name="url" type="VARCHAR(1024)"/>
@@ -174,5 +171,79 @@
       <column name="role" type="VARCHAR(255)"/>
     </createTable>
 
+    <!-- Foreign Key Constraints -->
+    <addForeignKeyConstraint baseTableName="drivers" baseColumnNames="country_id"
+                             referencedTableName="countries" referencedColumnNames="id"
+                             constraintName="fk_drivers_country"/>
+                             
+    <addForeignKeyConstraint baseTableName="teams" baseColumnNames="country_id"
+                             referencedTableName="countries" referencedColumnNames="id"
+                             constraintName="fk_teams_country"/>
+
+    <addForeignKeyConstraint baseTableName="team_seasons" baseColumnNames="team_id"
+                             referencedTableName="teams" referencedColumnNames="id"
+                             constraintName="fk_team_seasons_team"/>
+
+    <addForeignKeyConstraint baseTableName="team_seasons" baseColumnNames="championship_id"
+                             referencedTableName="championships" referencedColumnNames="id"
+                             constraintName="fk_team_seasons_championship"/>
+
+    <addForeignKeyConstraint baseTableName="driver_seasons" baseColumnNames="driver_id"
+                             referencedTableName="drivers" referencedColumnNames="id"
+                             constraintName="fk_driver_seasons_driver"/>
+
+    <addForeignKeyConstraint baseTableName="driver_seasons" baseColumnNames="team_season_id"
+                             referencedTableName="team_seasons" referencedColumnNames="id"
+                             constraintName="fk_driver_seasons_team_season"/>
+
+    <addForeignKeyConstraint baseTableName="grand_prix" baseColumnNames="championship_id"
+                             referencedTableName="championships" referencedColumnNames="id"
+                             constraintName="fk_gp_championship"/>
+
+    <addForeignKeyConstraint baseTableName="grand_prix" baseColumnNames="circuit_id"
+                             referencedTableName="circuits" referencedColumnNames="id"
+                             constraintName="fk_gp_circuit"/>
+
+    <addForeignKeyConstraint baseTableName="gp_sessions" baseColumnNames="grand_prix_id"
+                             referencedTableName="grand_prix" referencedColumnNames="id"
+                             constraintName="fk_gp_sessions_gp"/>
+
+    <addForeignKeyConstraint baseTableName="gp_sessions" baseColumnNames="fast_lap_by"
+                             referencedTableName="driver_seasons" referencedColumnNames="id"
+                             constraintName="fk_gp_sessions_fastlap_by"/>
+
+    <addForeignKeyConstraint baseTableName="sessions_results" baseColumnNames="gp_session_id"
+                             referencedTableName="gp_sessions" referencedColumnNames="id"
+                             constraintName="fk_results_session"/>
+
+    <addForeignKeyConstraint baseTableName="sessions_results" baseColumnNames="driver_season_id"
+                             referencedTableName="driver_seasons" referencedColumnNames="id"
+                             constraintName="fk_results_driver_season"/>
+
+    <addForeignKeyConstraint baseTableName="circuits" baseColumnNames="country_id"
+                             referencedTableName="countries" referencedColumnNames="id"
+                             constraintName="fk_circuits_country"/>
+
+    <addForeignKeyConstraint baseTableName="circuits" baseColumnNames="fastest_lap_by"
+                             referencedTableName="driver_seasons" referencedColumnNames="id"
+                             constraintName="fk_circuits_fastest_lap_by_driver_season"/>
+
+    <addUniqueConstraint tableName="drivers" columnNames="driver_code" constraintName="uk_driver_code"/>
+    <addUniqueConstraint tableName="teams" columnNames="team_code" constraintName="uk_team_code"/>
+    <addUniqueConstraint tableName="championships" columnNames="championship_code" constraintName="uk_championship_code"/>
+    <addUniqueConstraint tableName="circuits" columnNames="circuit_code" constraintName="uk_circuit_code"/>
+    <addUniqueConstraint tableName="grand_prix" columnNames="grand_prix_code" constraintName="uk_grand_prix_code"/>
+    <addUniqueConstraint
+    tableName="team_seasons"
+    columnNames="team_id,championship_id"
+    constraintName="uk_team_seasons_team_championship"/>
+    <addUniqueConstraint
+    tableName="gp_sessions"
+    columnNames="grand_prix_id,type"
+    constraintName="uk_gp_sessions_gp_type"/>
+    <addUniqueConstraint
+    tableName="user_gp_tracker"
+    columnNames="user_id,gp_id"
+    constraintName="uk_user_gp_tracker_unique"/>
   </changeSet>
 </databaseChangeLog>

@@ -40,7 +40,7 @@ public class SessionResult {
   @ManyToOne
   @JoinColumn(name = "gp_session_id")
   @JsonManagedReference
-  private GP_Session gpSession;
+  private GpSession gpSession;
 
   @ManyToOne
   @JoinColumn(name = "driver_season_id")

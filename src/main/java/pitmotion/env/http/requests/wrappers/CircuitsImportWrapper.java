@@ -1,10 +1,13 @@
 package pitmotion.env.http.requests.wrappers;
 
-import jakarta.validation.Valid;
-import java.util.List;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 import pitmotion.env.http.requests.imports.CircuitImportRequest;
 
+import java.util.List;
+
 public record CircuitsImportWrapper(
-    @Valid List<CircuitImportRequest> circuits
+    int limit,
+    int offset,
+    int total,
+    @JsonProperty("circuits") List<CircuitImportRequest> circuits
 ) {}

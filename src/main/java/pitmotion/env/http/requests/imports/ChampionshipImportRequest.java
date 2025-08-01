@@ -1,8 +1,10 @@
 package pitmotion.env.http.requests.imports;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public record ChampionshipImportRequest(
-    String championshipCode,
-    String name,
-    Integer year,
-    String url
+    @JsonProperty("championshipId") String championshipCode,
+    @JsonProperty("championshipName") String name,
+    @JsonProperty("year") Integer year,
+    @JsonProperty("url") String url
 ) {}
