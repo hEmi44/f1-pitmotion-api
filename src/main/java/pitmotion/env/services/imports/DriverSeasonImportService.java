@@ -65,7 +65,7 @@ public class DriverSeasonImportService implements EntityImportService<DriverSeas
                 result.add(driverSeasonRepository.save(entity));
             },
 
-            100 // même si pas paginé, garde la structure unifiée
+            100
         );
 
         return result;

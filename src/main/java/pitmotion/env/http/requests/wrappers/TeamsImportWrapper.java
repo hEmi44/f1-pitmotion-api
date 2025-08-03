@@ -6,8 +6,8 @@ import pitmotion.env.http.requests.imports.TeamImportRequest;
 import java.util.List;
 
 public record TeamsImportWrapper(
-    int limit,
-    int offset,
-    int total,
+    @JsonProperty("limit") int limit,
+    @JsonProperty("offset") int offset,
+    @JsonProperty("total") int total,
     @JsonProperty("teams") List<TeamImportRequest> teams
 ) {}

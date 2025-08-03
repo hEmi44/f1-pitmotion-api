@@ -10,8 +10,6 @@ import java.util.Optional;
 
 @Repository
 public interface TeamSeasonRepository extends JpaRepository<TeamSeason, Long> {
-
     boolean existsByTeamAndChampionship(Team team, Championship championship);
-
     Optional<TeamSeason> findByTeamAndChampionship(Team team, Championship championship);
 }

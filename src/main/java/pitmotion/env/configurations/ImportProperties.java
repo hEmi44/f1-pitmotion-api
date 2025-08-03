@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 @Component
 @ConfigurationProperties(prefix = "import")
 public class ImportProperties {
-    private long delayMs = 0;
+    private long delayMs = 500;
 
     public long getDelayMs() { return delayMs; }
     public void setDelayMs(long delayMs) { this.delayMs = delayMs; }

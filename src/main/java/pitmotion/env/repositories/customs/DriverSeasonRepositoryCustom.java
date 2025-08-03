@@ -8,4 +8,5 @@ import java.util.Optional;
 
 public interface DriverSeasonRepositoryCustom {
     Optional<DriverSeason> findByDriverTeamAndYear(Driver driver, Team team, int year);
+    
 }

@@ -114,7 +114,6 @@
       <column name="laps" type="INTEGER"/>
       <column name="date" type="DATE"/>
       <column name="time" type="TIME"/>
-      <column name="fast_lap" type="VARCHAR(10)"/>
       <column name="fast_lap_by" type="BIGINT"/>
       <column name="type" type="VARCHAR(20)"/>
       <column name="grand_prix_id" type="BIGINT"/>

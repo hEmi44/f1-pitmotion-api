@@ -6,8 +6,8 @@ import pitmotion.env.http.requests.imports.ChampionshipImportRequest;
 import java.util.List;
 
 public record ChampionshipsImportWrapper(
-    int limit,
-    int offset,
-    int total,
+    @JsonProperty("limit") int limit,
+    @JsonProperty("offset") int offset,
+    @JsonProperty("total") int total,
     @JsonProperty("championships") List<ChampionshipImportRequest> championships
 ) {}

@@ -6,8 +6,8 @@ import pitmotion.env.http.requests.imports.CircuitImportRequest;
 import java.util.List;
 
 public record CircuitsImportWrapper(
-    int limit,
-    int offset,
-    int total,
+    @JsonProperty("limit") Integer limit,
+    @JsonProperty("offset") Integer offset,
+    @JsonProperty("total") Integer total,
     @JsonProperty("circuits") List<CircuitImportRequest> circuits
 ) {}

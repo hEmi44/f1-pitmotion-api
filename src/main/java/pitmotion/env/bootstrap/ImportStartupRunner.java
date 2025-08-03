@@ -19,7 +19,7 @@ public class ImportStartupRunner implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        // importService.importAll();
-        importService.importYear(2025);
+        //importService.importAll();
+        importService.importYear(2022);
     }
 }

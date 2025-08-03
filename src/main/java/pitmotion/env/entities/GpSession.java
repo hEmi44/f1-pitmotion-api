@@ -29,9 +29,6 @@ public class GpSession {
   @Column(name = "time")
   private LocalTime time;  
 
-  @Column(name = "fast_lap")
-  private String fastLap;
-
   @ManyToOne
   @JoinColumn(name = "fast_lap_by")
   @JsonManagedReference
