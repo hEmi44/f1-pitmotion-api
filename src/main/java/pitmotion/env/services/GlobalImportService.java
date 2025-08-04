@@ -32,25 +32,21 @@ public class GlobalImportService {
     public void importAll() {
         Debug.logger().dump("➡️ Lancement de l'import complet");
 
-        // 1) Championnats
         Debug.logger().dump("➡️ Import des championnats");
         List<Championship> championships = championshipImportService.importChampionships();
         pause();
         Debug.logger().dump("✅ Import des championnats terminé");
 
-        // 2) Pilotes
         Debug.logger().dump("➡️ Import des pilotes");
         driverImportService.importDrivers();
         pause();
         Debug.logger().dump("✅ Import des pilotes terminé");
 
-        // 3) Écuries
         Debug.logger().dump("➡️ Import des écuries");
         teamImportService.importTeams();
         pause();
         Debug.logger().dump("✅ Import des écuries terminé");
 
-        // 4) Profils écurie + pilote
         for (Championship championship : championships) {
             Debug.logger().dump("➡️ Import des profils d'équipe pour " + championship.getYear());
             teamSeasonImportService.importForChampionship(championship);
@@ -61,13 +57,11 @@ public class GlobalImportService {
         }
         Debug.logger().dump("✅ Import des profils écurie + pilote terminé");
 
-        // 5) Circuits
         Debug.logger().dump("➡️ Import des circuits");
         circuitImportService.importCircuits();
         pause();
         Debug.logger().dump("✅ Import des circuits terminé");
 
-        // 6a) Grands Prix (création des sessions)
         for (Championship championship : championships) {
             Debug.logger().dump("➡️ Import des Grands Prix pour " + championship.getYear());
             grandPrixImportService.importForChampionship(championship);
@@ -75,7 +69,6 @@ public class GlobalImportService {
             Debug.logger().dump("✅ Import des Grands Prix terminé pour " + championship.getYear());
         }
 
-        // 6b) Résultats de chaque session
         for (Championship championship : championships) {
             for (GrandPrix gp : grandPrixImportService.importForChampionship(championship)) {
                 Debug.logger().dump("➡️ Import des résultats pour GP " + gp.getName());

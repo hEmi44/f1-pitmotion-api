@@ -1,6 +1,5 @@
 package pitmotion.env.mappers.imports;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import pitmotion.env.debug.Debug;
@@ -8,7 +7,6 @@ import pitmotion.env.entities.Circuit;
 import pitmotion.env.http.requests.imports.CircuitImportRequest;
 
 import java.time.Duration;
-import java.text.Normalizer;
 
 @Component
 @AllArgsConstructor

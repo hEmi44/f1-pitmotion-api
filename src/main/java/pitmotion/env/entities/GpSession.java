@@ -32,7 +32,7 @@ public class GpSession {
   @ManyToOne
   @JoinColumn(name = "fast_lap_by")
   @JsonManagedReference
-  private Driver fastLapBy;
+  private DriverSeason fastLapBy;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "type", nullable = false)

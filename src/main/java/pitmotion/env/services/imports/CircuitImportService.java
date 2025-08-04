@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
-import pitmotion.env.debug.Debug;
 import pitmotion.env.entities.Circuit;
 import pitmotion.env.entities.Driver;
 import pitmotion.env.entities.DriverSeason;

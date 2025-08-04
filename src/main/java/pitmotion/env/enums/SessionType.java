@@ -1,37 +1,34 @@
 package pitmotion.env.enums;
 
-import java.util.Map;
-
 public enum SessionType {
-    FP1("fp1"),
-    FP2("fp2"),
-    FP3("fp3"),
-    QUALIFYING("qualy"),
-    SPRINT_QUALIFYING("sprintQualy"),
-    SPRINT_RACE("sprintRace"),
-    RACE("race");
+    FP1("fp1",              "fp1Results",           "fp1"),
+    FP2("fp2",              "fp2Results",           "fp2"),
+    FP3("fp3",              "fp3Results",           "fp3"),
+    QUALIFYING("qualy",     "qualyResults",         "qualy"),
+    RACE("race",            "results",              "race"),
+    SPRINT_QUALIFYING("sprintQualy", "sprintQualyResults", "sprint/qualy"),
+    SPRINT_RACE("sprintRace",       "sprintRaceResults",   "sprint/race");
 
-    private final String apiKey;
+    private final String apiKey;   // clé venue du JSON `schedule`
+    private final String jsonKey;  // propriété à lire dans `races`
+    private final String path;     // fragment d’URL ([year]/[round]/<path>)
 
-    SessionType(String apiKey) {
-        this.apiKey = apiKey;
+    SessionType(String apiKey, String jsonKey, String path) {
+        this.apiKey  = apiKey;
+        this.jsonKey = jsonKey;
+        this.path    = path;
     }
 
-    public String apiKey() {
-        return apiKey;
-    }
-
-    private static final Map<String, SessionType> BY_API_KEY = Map.ofEntries(
-        Map.entry("fp1", FP1),
-        Map.entry("fp2", FP2),
-        Map.entry("fp3", FP3),
-        Map.entry("qualy", QUALIFYING),
-        Map.entry("sprintQualy", SPRINT_QUALIFYING),
-        Map.entry("sprintRace", SPRINT_RACE),
-        Map.entry("race", RACE)
-    );
+    public String getApiKey()  { return apiKey; }
+    public String getJsonKey() { return jsonKey; }
+    public String getPath()    { return path; }
 
     public static SessionType fromApiKey(String key) {
-        return BY_API_KEY.get(key);
+        for (SessionType t : values()) {
+            if (t.apiKey.equals(key)) {
+                return t;
+            }
+        }
+        return null;
     }
 }
