@@ -170,6 +170,20 @@
       <column name="role" type="VARCHAR(255)"/>
     </createTable>
 
+    <createTable tableName="driver_aliases">
+      <column name="id" type="BIGINT">
+      <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="alias" type="VARCHAR(50)">
+      <constraints nullable="false" unique="true"/>
+      </column>
+      <column name="driver_id" type="BIGINT">
+      <constraints nullable="false"
+                     foreignKeyName="fk_alias_driver"
+                     references="drivers(id)"/>
+      </column>
+    </createTable>
+
     <!-- Foreign Key Constraints -->
     <addForeignKeyConstraint baseTableName="drivers" baseColumnNames="country_id"
                              referencedTableName="countries" referencedColumnNames="id"

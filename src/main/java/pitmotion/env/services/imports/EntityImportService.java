@@ -41,15 +41,14 @@ public interface EntityImportService<T, W> {
 
     default <R> R fetch(Supplier<R> call) {
         int attempt = 0;
-
+    
         while (true) {
             try {
                 return call.get();
             } catch (HttpClientErrorException e) {
                 int status = e.getStatusCode().value();
-
+    
                 if (status == 404) {
-                    Debug.logger().dump("Réponse 404 : ressource non trouvée. Skip.");
                     return null;
                 }
                 if (status == 429) {
@@ -71,7 +70,7 @@ public interface EntityImportService<T, W> {
                 sleep(30_000);
             }
         }
-    }
+    }    
 
     private static void sleep(long millis) {
         try {

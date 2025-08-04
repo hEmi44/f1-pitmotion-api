@@ -45,4 +45,14 @@ public class DriverImportMapper {
 
         return target;
     }
+
+    public LocalDate parseBirthday(String birthday) {
+        if (birthday == null) return null;
+        for (DateTimeFormatter fmt : BIRTHDAY_FORMATS) {
+            try {
+                return LocalDate.parse(birthday, fmt);
+            } catch (Exception ignored) { }
+        }
+        return null;
+    }
 }
