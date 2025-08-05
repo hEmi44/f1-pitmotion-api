@@ -2,8 +2,6 @@ package pitmotion.env.http.requests.imports;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import pitmotion.env.http.requests.imports.interfaces.BaseImportRequest;
-
 public record CircuitImportRequest(
     @JsonProperty("circuitId") String circuitCode,
     @JsonProperty("circuitName") String name,
@@ -19,9 +17,4 @@ public record CircuitImportRequest(
     @JsonProperty("fastestLapTeamId") String fastestLapTeamCode,
     @JsonProperty("fastestLapYear") Integer fastestLapYear
     
-) implements BaseImportRequest {
-
-    @Override public String getCode() { return circuitCode; }
-    @Override public String getUrl()  { return url;  }
-    @Override public String getName() { return name; }
-}
+) {}

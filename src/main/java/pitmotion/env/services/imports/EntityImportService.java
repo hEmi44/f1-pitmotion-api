@@ -22,20 +22,6 @@ public abstract class EntityImportService<T, W> {
     protected static final JaroWinklerSimilarity JW_SIM = new JaroWinklerSimilarity();
     protected static final double FUZZY_THRESHOLD = 0.95;
 
-    protected <E> Optional<E> findFuzzyMatch(
-        String keySlug,
-        List<E> candidates,
-        Function<E, String> toSlug
-    ) {
-        return candidates.stream()
-            .map(e -> Map.entry(e, JW_SIM.apply(keySlug, toSlug.apply(e))))
-            .filter(e -> e.getValue() >= FUZZY_THRESHOLD)
-            .peek(e -> Debug.logger().dump(
-                "    fuzzy candidate", toSlug.apply(e.getKey()), "score=", e.getValue()))
-            .map(Map.Entry::getKey)
-            .findFirst();
-    }
-
     protected void paginatedImport(
         Function<Integer, W> fetchFunction,
         Function<W, List<T>> extractor,
@@ -43,17 +29,17 @@ public abstract class EntityImportService<T, W> {
         int limit
     ) {
         int offset = 0;
-
         while (true) {
             final int currentOffset = offset;
-
             W wrapper = fetch(() -> fetchFunction.apply(currentOffset));
             List<T> items = extractor.apply(wrapper);
-            if (items == null || items.isEmpty()) break;
-
+            if (items == null || items.isEmpty()) {
+                break;
+            }
             items.forEach(processor);
-            if (items.size() < limit) break;
-
+            if (items.size() < limit) {
+                break;
+            }
             offset += limit;
             sleep(importProperties.getDelayMs());
         }
@@ -66,21 +52,21 @@ public abstract class EntityImportService<T, W> {
                 return call.get();
             } catch (HttpClientErrorException e) {
                 int status = e.getStatusCode().value();
-                if (status == 404) return null;
+                if (status == 404) {
+                    Debug.logger().dump("Fetch error 404 – returning null");
+                    return null;
+                }
                 if (status == 429 || status == 499) {
                     attempt++;
-                    Debug.logger().dump(
-                        String.format("Erreur %d (%s) (tentative %d)… Nouvelle tentative dans 60 secondes", status,
-                                      status == 429 ? "Rate Limit" : "Canceled",
-                                      attempt));
+                    Debug.logger().dump("Fetch retryable error " + status + " attempt=" + attempt + ". Next attempt in 60s");
                     sleep(importProperties.getRetryDelayMs());
                     continue;
                 }
+                Debug.logger().dump("Fetch HTTP error " + status + " – " + e.getMessage());
                 throw e;
             } catch (Exception e) {
                 attempt++;
-                Debug.logger().dump(
-                    String.format("Erreur inattendue (tentative %d): %s", attempt, e.getMessage()));
+                Debug.logger().dump("Fetch unexpected error attempt=" + attempt + " – " + e.getMessage());
                 sleep(importProperties.getRetryDelayMs());
             }
         }
@@ -91,7 +77,7 @@ public abstract class EntityImportService<T, W> {
             Thread.sleep(millis);
         } catch (InterruptedException ie) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException("Import interrompu", ie);
+            throw new RuntimeException("Import interrupted", ie);
         }
     }
 
@@ -109,5 +95,19 @@ public abstract class EntityImportService<T, W> {
         return noAccent.toLowerCase()
                        .replaceAll("[^a-z0-9]+", "_")
                        .replaceAll("^_|_$", "");
+    }
+
+    protected <E> Optional<E> findFuzzyMatch(
+        String keySlug,
+        List<E> candidates,
+        Function<E, String> toSlug
+    ) {
+        return candidates.stream()
+            .map(e -> Map.entry(e, JW_SIM.apply(keySlug, toSlug.apply(e))))
+            .filter(e -> e.getValue() >= FUZZY_THRESHOLD)
+            .peek(e -> Debug.logger().dump(
+                "Fuzzy match " + toSlug.apply(e.getKey()) + " score=" + e.getValue()))
+            .map(Map.Entry::getKey)
+            .findFirst();
     }
 }

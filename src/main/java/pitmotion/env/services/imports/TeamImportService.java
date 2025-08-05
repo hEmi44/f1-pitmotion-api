@@ -3,7 +3,6 @@ package pitmotion.env.services.imports;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
-
 import pitmotion.env.entities.Team;
 import pitmotion.env.http.requests.imports.TeamImportRequest;
 import pitmotion.env.http.requests.wrappers.TeamsImportWrapper;
@@ -15,7 +14,8 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
-public class TeamImportService extends EntityImportService<TeamImportRequest, TeamsImportWrapper> {
+public class TeamImportService
+    extends EntityImportService<TeamImportRequest, TeamsImportWrapper> {
 
     private final RestClient restClient;
     private final TeamRepository repo;
@@ -27,18 +27,14 @@ public class TeamImportService extends EntityImportService<TeamImportRequest, Te
         paginatedImport(
             offset -> fetch(() ->
                 restClient.get()
-                          .uri("/teams?limit=" + importProperties.getPageSize() + "&offset=" + offset)
+                          .uri("/teams?limit=" + importProperties.getPageSize()
+                               + "&offset=" + offset)
                           .retrieve()
                           .toEntity(TeamsImportWrapper.class)
                           .getBody()
             ),
             wrapper -> wrapper != null ? wrapper.teams() : List.of(),
-            req -> {
-                Team entity = repo.findByTeamCode(req.teamCode())
-                                  .orElseGet(Team::new);
-                mapper.request(req, entity);
-                result.add(repo.save(entity));
-            },
+            req -> processTeam(req, result),
             importProperties.getPageSize()
         );
 
@@ -51,22 +47,24 @@ public class TeamImportService extends EntityImportService<TeamImportRequest, Te
         paginatedImport(
             offset -> fetch(() ->
                 restClient.get()
-                          .uri("/" + year + "/teams?limit=" + importProperties.getPageSize() + "&offset=" + offset)
+                          .uri("/" + year + "/teams?limit=" + importProperties.getPageSize()
+                               + "&offset=" + offset)
                           .retrieve()
                           .toEntity(TeamsImportWrapper.class)
                           .getBody()
             ),
             wrapper -> wrapper != null ? wrapper.teams() : List.of(),
-            req -> {
-                Team entity = repo.findByTeamCode(req.teamCode())
-                                  .orElseGet(Team::new);
-                mapper.request(req, entity);
-                result.add(repo.save(entity));
-            },
+            req -> processTeam(req, result),
             importProperties.getPageSize()
         );
 
         return result;
     }
 
+    private void processTeam(TeamImportRequest req, List<Team> result) {
+        Team entity = repo.findByTeamCode(req.teamCode())
+                          .orElseGet(Team::new);
+        mapper.request(req, entity);
+        result.add(repo.save(entity));
+    }
 }

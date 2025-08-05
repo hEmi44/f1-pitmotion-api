@@ -16,125 +16,107 @@ import java.util.List;
 @AllArgsConstructor
 public class GlobalImportService {
 
-    private final ImportProperties                importProperties;
-    private final ChampionshipImportService       championshipImportService;
-    private final DriverImportService             driverImportService;
-    private final TeamImportService               teamImportService;
-    private final CircuitImportService            circuitImportService;
-    private final TeamSeasonImportService         teamSeasonImportService;
-    private final DriverSeasonImportService       driverSeasonImportService;
-    private final GrandPrixImportService          grandPrixImportService;
-    private final GpSessionRepository             gpSessionRepository;
-    private final SessionResultImportService      sessionResultImportService;
+    private final ImportProperties importProperties;
+    private final ChampionshipImportService championshipImportService;
+    private final DriverImportService driverImportService;
+    private final TeamImportService teamImportService;
+    private final CircuitImportService circuitImportService;
+    private final TeamSeasonImportService teamSeasonImportService;
+    private final DriverSeasonImportService driverSeasonImportService;
+    private final GrandPrixImportService grandPrixImportService;
+    private final GpSessionRepository gpSessionRepository;
+    private final SessionResultImportService sessionResultImportService;
 
     public void importAll() {
-        Debug.logger().dump("➡️ Lancement de l'import complet");
+        Debug.logger().dump("Starting full import");
 
-        Debug.logger().dump("➡️ Import des championnats");
+        Debug.logger().dump("Importing championships");
         List<Championship> championships = championshipImportService.importChampionships();
         pause();
-        Debug.logger().dump("✅ Import des championnats terminé");
 
-        Debug.logger().dump("➡️ Import des pilotes");
+        Debug.logger().dump("Importing drivers");
         driverImportService.importDrivers();
         pause();
-        Debug.logger().dump("✅ Import des pilotes terminé");
 
-        Debug.logger().dump("➡️ Import des écuries");
+        Debug.logger().dump("Importing teams");
         teamImportService.importTeams();
         pause();
-        Debug.logger().dump("✅ Import des écuries terminé");
 
         for (Championship championship : championships) {
-            Debug.logger().dump("➡️ Import des profils d'équipe pour " + championship.getYear());
+            Debug.logger().dump("Importing team seasons for " + championship.getYear());
             teamSeasonImportService.importForChampionship(championship);
             pause();
-            Debug.logger().dump("➡️ Import des profils pilotes pour " + championship.getYear());
+
+            Debug.logger().dump("Importing driver seasons for " + championship.getYear());
             driverSeasonImportService.importForChampionship(championship);
             pause();
         }
-        Debug.logger().dump("✅ Import des profils écurie + pilote terminé");
 
-        Debug.logger().dump("➡️ Import des circuits");
+        Debug.logger().dump("Importing circuits");
         circuitImportService.importCircuits();
         pause();
-        Debug.logger().dump("✅ Import des circuits terminé");
 
         for (Championship championship : championships) {
-            Debug.logger().dump("➡️ Import des Grands Prix pour " + championship.getYear());
-            grandPrixImportService.importForChampionship(championship);
+            Debug.logger().dump("Importing Grands Prix for " + championship.getYear());
+            List<GrandPrix> gps = grandPrixImportService.importForChampionship(championship);
             pause();
-            Debug.logger().dump("✅ Import des Grands Prix terminé pour " + championship.getYear());
-        }
 
-        for (Championship championship : championships) {
-            for (GrandPrix gp : grandPrixImportService.importForChampionship(championship)) {
-                Debug.logger().dump("➡️ Import des résultats pour GP " + gp.getName());
+            for (GrandPrix gp : gps) {
                 List<GpSession> sessions = gpSessionRepository.findByGrandPrix(gp);
                 for (GpSession session : sessions) {
-                    Debug.logger().dump("   ↪️ Session " + session.getType() + " (Round " + session.getGrandPrix().getRound() + ")");
                     sessionResultImportService.importForGpSession(session);
                 }
                 pause();
-                Debug.logger().dump("✅ Résultats importés pour GP " + gp.getName());
             }
         }
 
-        Debug.logger().dump("🎯 Import global terminé avec succès");
+        Debug.logger().dump("Full import completed");
     }
 
     public void importYear(int year) {
-        Debug.logger().dump("➡️ Lancement de l'import pour l'année " + year);
+        Debug.logger().dump("Starting import for year " + year);
 
-        Debug.logger().dump("➡️ Import des championnats");
+        Debug.logger().dump("Importing championships");
         Championship championship = championshipImportService.importChampionships().stream()
             .filter(c -> c.getYear() == year)
             .findFirst()
-            .orElseThrow(() -> new RuntimeException("Aucun championnat trouvé pour " + year));
+            .orElseThrow(() -> new RuntimeException("No championship found for " + year));
         pause();
-        Debug.logger().dump("✅ Championnat " + year + " prêt");
 
-        Debug.logger().dump("➡️ Import des pilotes pour " + year);
+        Debug.logger().dump("Importing drivers for " + year);
         driverImportService.importDriversForYear(year);
         pause();
-        Debug.logger().dump("✅ Pilotes " + year + " terminé");
 
-        Debug.logger().dump("➡️ Import des écuries pour " + year);
+        Debug.logger().dump("Importing teams for " + year);
         teamImportService.importTeamsForYear(year);
         pause();
-        Debug.logger().dump("✅ Écuries " + year + " terminé");
 
-        Debug.logger().dump("➡️ Profils d'équipe pour " + year);
+        Debug.logger().dump("Importing team seasons for " + year);
         teamSeasonImportService.importForChampionship(championship);
         pause();
-        Debug.logger().dump("➡️ Profils pilotes pour " + year);
+
+        Debug.logger().dump("Importing driver seasons for " + year);
         driverSeasonImportService.importForChampionship(championship);
         pause();
-        Debug.logger().dump("✅ Profils saison " + year + " terminé");
 
-        Debug.logger().dump("➡️ Import des circuits");
+        Debug.logger().dump("Importing circuits");
         circuitImportService.importCircuits();
         pause();
-        Debug.logger().dump("✅ Circuits " + year + " terminé");
 
-        Debug.logger().dump("➡️ Import des Grands Prix pour " + year);
+        Debug.logger().dump("Importing Grands Prix for " + year);
         List<GrandPrix> gps = grandPrixImportService.importForChampionship(championship);
         pause();
-        Debug.logger().dump("✅ Grands Prix " + year + " terminé");
 
-        Debug.logger().dump("➡️ Import des résultats pour " + year);
+        Debug.logger().dump("Importing session results for " + year);
         for (GrandPrix gp : gps) {
-            Debug.logger().dump("  ↪️ GP " + gp.getName());
             List<GpSession> sessions = gpSessionRepository.findByGrandPrix(gp);
             for (GpSession session : sessions) {
-                Debug.logger().dump("     • Session " + session.getType());
                 sessionResultImportService.importForGpSession(session);
             }
             pause();
-            Debug.logger().dump("  ✅ Résultats importés pour GP " + gp.getName());
         }
 
-        Debug.logger().dump("🎯 Import terminé pour l'année " + year);
+        Debug.logger().dump("Import for year " + year + " completed");
     }
 
     private void pause() {

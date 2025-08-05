@@ -1,14 +1,15 @@
 package pitmotion.env.services.imports;
 
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import pitmotion.env.entities.Driver;
-import pitmotion.env.entities.DriverAlias;
+import pitmotion.env.enums.EntityType;
 import pitmotion.env.http.requests.imports.DriverImportRequest;
 import pitmotion.env.http.requests.wrappers.DriversImportWrapper;
 import pitmotion.env.mappers.imports.DriverImportMapper;
-import pitmotion.env.repositories.DriverAliasRepository;
+import pitmotion.env.repositories.AliasRepository;
 import pitmotion.env.repositories.DriverRepository;
 
 import java.time.LocalDate;
@@ -22,70 +23,92 @@ public class DriverImportService extends EntityImportService<DriverImportRequest
 
     private final RestClient restClient;
     private final DriverRepository driverRepository;
-    private final DriverAliasRepository aliasRepository;
+    private final AliasRepository aliasRepository;
     private final DriverImportMapper driverMapper;
+    private final AliasImportService aliasImportService;
 
     public List<Driver> importDrivers() {
-        return importDriversInternal(offset ->
-            "/drivers?limit=" + importProperties.getPageSize() + "&offset=" + offset
-        );
-    }
-
-    public List<Driver> importDriversForYear(int year) {
-        return importDriversInternal(offset ->
-            "/" + year + "/drivers?limit=" + importProperties.getPageSize() + "&offset=" + offset
-        );
-    }
-
-    private List<Driver> importDriversInternal(java.util.function.Function<Integer, String> uriBuilder) {
         List<Driver> result = new ArrayList<>();
+        List<Pair<String, Long>> newAliases = new ArrayList<>();
 
         paginatedImport(
             offset -> fetch(() ->
                 restClient.get()
-                          .uri(uriBuilder.apply(offset))
+                          .uri("/drivers?limit=" + importProperties.getPageSize() + "&offset=" + offset)
                           .retrieve()
                           .toEntity(DriversImportWrapper.class)
                           .getBody()
             ),
             wrapper -> wrapper != null ? wrapper.drivers() : List.of(),
-            req -> {
-                String rawCode = req.driverCode();
-                Optional<Driver> opt = driverRepository.findByDriverCode(rawCode)
-                    .or(() -> aliasRepository.findByAlias(rawCode).map(DriverAlias::getDriver));
-
-                LocalDate bd = driverMapper.parseBirthday(req.birthday());
-                if (opt.isEmpty() && bd != null) {
-                    opt = driverRepository.findByNameAndSurnameAndBirthday(req.name(), req.surname(), bd);
-                }
-                if (opt.isEmpty() && bd != null) {
-                    opt = driverRepository.findByNameAndSurnameAndBirthday(req.surname(), req.name(), bd);
-                }
-
-                Driver driver = opt.map(existing -> {
-                    String canonical = existing.getDriverCode();
-                    driverMapper.request(req, existing);
-                    existing.setDriverCode(canonical);
-                    driverRepository.save(existing);
-                    if (!canonical.equals(rawCode) && aliasRepository.findByAlias(rawCode).isEmpty()) {
-                        DriverAlias a = new DriverAlias();
-                        a.setAlias(rawCode);
-                        a.setDriver(existing);
-                        aliasRepository.save(a);
-                    }
-                    return existing;
-                }).orElseGet(() -> {
-                    Driver d = new Driver();
-                    d.setDriverCode(rawCode);
-                    driverMapper.request(req, d);
-                    return driverRepository.save(d);
-                });
-
-                result.add(driver);
-            },
+            req -> processDriver(req, result, newAliases),
             importProperties.getPageSize()
         );
 
+        aliasImportService.saveNewAliases(EntityType.DRIVER, newAliases);
         return result;
+    }
+
+    public List<Driver> importDriversForYear(int year) {
+        List<Driver> result = new ArrayList<>();
+        List<Pair<String, Long>> newAliases = new ArrayList<>();
+
+        paginatedImport(
+            offset -> fetch(() ->
+                restClient.get()
+                          .uri(String.format("/%d/drivers?limit=%d&offset=%d",
+                              year, importProperties.getPageSize(), offset))
+                          .retrieve()
+                          .toEntity(DriversImportWrapper.class)
+                          .getBody()
+            ),
+            wrapper -> wrapper != null ? wrapper.drivers() : List.of(),
+            req -> processDriver(req, result, newAliases),
+            importProperties.getPageSize()
+        );
+
+        aliasImportService.saveNewAliases(EntityType.DRIVER, newAliases);
+        return result;
+    }
+
+    private void processDriver(DriverImportRequest req, List<Driver> result, List<Pair<String, Long>> newAliases) {
+        String incomingCode = req.driverCode();
+
+        Optional<Driver> byCode = driverRepository.findByDriverCode(incomingCode);
+        Optional<Driver> byAlias = byCode.isEmpty()
+            ? aliasRepository.findByEntityTypeAndAlias(EntityType.DRIVER, incomingCode)
+                             .flatMap(a -> driverRepository.findById(a.getEntityId()))
+            : Optional.empty();
+
+        Optional<Driver> existingOpt = byCode.or(() -> byAlias);
+        if (existingOpt.isEmpty()) {
+            LocalDate bd = driverMapper.parseBirthday(req.birthday());
+            if (bd != null) {
+                existingOpt = driverRepository.findByNameAndSurnameAndBirthday(req.name(), req.surname(), bd);
+                if (existingOpt.isEmpty()) {
+                    existingOpt = driverRepository.findByNameAndSurnameAndBirthday(req.surname(), req.name(), bd);
+                }
+            }
+        }
+
+        Driver entity;
+        String oldCode = null;
+        if (existingOpt.isPresent()) {
+            entity = existingOpt.get();
+            oldCode = entity.getDriverCode();
+        } else {
+            entity = new Driver();
+        }
+
+        driverMapper.request(req, entity);
+        if (oldCode != null) {
+            entity.setDriverCode(oldCode);
+        }
+
+        Driver saved = driverRepository.save(entity);
+        result.add(saved);
+
+        if (oldCode != null && !oldCode.equals(incomingCode)) {
+            newAliases.add(Pair.of(incomingCode, saved.getId()));
+        }
     }
 }

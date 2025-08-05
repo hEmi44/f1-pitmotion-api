@@ -4,16 +4,13 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
-import pitmotion.env.entities.interfaces.Aliaseable;
-import pitmotion.env.enums.EntityType;
-
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "teams")
 @AllArgsConstructor @NoArgsConstructor @Getter @Setter
-public class Team implements Aliaseable {
+public class Team  {
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "teams_seq")
   @SequenceGenerator(
@@ -43,18 +40,4 @@ public class Team implements Aliaseable {
   @JsonBackReference
   private List<TeamSeason> teamSeasons = new ArrayList<>();
 
-  @Override
-  public EntityType getEntityType() {
-      return EntityType.TEAM;
-  }
-
-  @Override
-  public Long getId() {
-      return this.id;
-  }
-
-  @Override
-  public String getCode() {
-      return this.teamCode;
-  }
 }

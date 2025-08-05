@@ -2,6 +2,7 @@ package pitmotion.env.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import pitmotion.env.enums.EntityType;
 
 @Entity
 @Table(name = "aliases")
@@ -11,7 +12,11 @@ public class Alias {
 
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "aliases_seq")
-  @SequenceGenerator(name = "aliases_seq", sequenceName = "aliases_id_seq", allocationSize = 1)
+  @SequenceGenerator(
+    name = "aliases_seq",
+    sequenceName = "aliases_id_seq",
+    allocationSize = 1
+  )
   private Long id;
 
   @Column(name = "alias", nullable = false, length = 255)
