@@ -15,29 +15,28 @@ import java.util.List;
 @AllArgsConstructor
 public class GpSessionImportService {
 
-    private final GpSessionRepository gpSessionRepository;
+    private final GpSessionRepository repo;
     private final GpSessionImportMapper mapper;
 
     public void importSessionsForGrandPrix(GrandPrix grandPrix, List<GpSessionImportRequest> sessions, Integer laps) {
         if (sessions == null || sessions.isEmpty()) {
-            Debug.logger().dump("⚠️ Aucune session à importer pour ce GP", grandPrix.getGrandPrixCode());
+            Debug.logger().dump("⚠️ Aucune session à importer", grandPrix.getGrandPrixCode());
             return;
         }
-    
+
         List<GpSession> entities = sessions.stream()
-            .map(req -> {
-                return gpSessionRepository.findByGrandPrixAndType(grandPrix, req.type())
-                    .map(existing -> {
-                        existing.setDate(req.date());
-                        existing.setTime(req.time());
-                        existing.setLaps(laps);
-                        return existing;
-                    })
-                    .orElseGet(() -> mapper.fromRequest(req, grandPrix, laps));
-            })
+            .map(req -> repo.findByGrandPrixAndType(grandPrix, req.type())
+                .map(existing -> {
+                    existing.setDate(req.date());
+                    existing.setTime(req.time());
+                    existing.setLaps(laps);
+                    return existing;
+                })
+                .orElseGet(() -> mapper.fromRequest(req, grandPrix, laps))
+            )
             .toList();
-    
-        gpSessionRepository.saveAll(entities);
+
+        repo.saveAll(entities);
     }
-    
+
 }

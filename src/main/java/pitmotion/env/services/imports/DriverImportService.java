@@ -1,7 +1,6 @@
 package pitmotion.env.services.imports;
 
 import lombok.AllArgsConstructor;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import pitmotion.env.entities.Driver;
@@ -19,10 +18,7 @@ import java.util.Optional;
 
 @Service
 @AllArgsConstructor
-@Profile("import")
-public class DriverImportService implements EntityImportService<DriverImportRequest, DriversImportWrapper> {
-
-    private static final int PAGE_SIZE = 100;
+public class DriverImportService extends EntityImportService<DriverImportRequest, DriversImportWrapper> {
 
     private final RestClient restClient;
     private final DriverRepository driverRepository;
@@ -30,19 +26,18 @@ public class DriverImportService implements EntityImportService<DriverImportRequ
     private final DriverImportMapper driverMapper;
 
     public List<Driver> importDrivers() {
-        return importDriversInternal("/drivers?limit=", this::buildDriversUri);
-    }
-
-    public List<Driver> importDriversForYear(int year) {
-        return importDriversInternal("/" + year + "/drivers?limit=", offset -> 
-            "/" + year + "/drivers?limit=" + PAGE_SIZE + "&offset=" + offset
+        return importDriversInternal(offset ->
+            "/drivers?limit=" + importProperties.getPageSize() + "&offset=" + offset
         );
     }
 
-    private List<Driver> importDriversInternal(
-            String basePath,
-            java.util.function.Function<Integer, String> uriBuilder
-    ) {
+    public List<Driver> importDriversForYear(int year) {
+        return importDriversInternal(offset ->
+            "/" + year + "/drivers?limit=" + importProperties.getPageSize() + "&offset=" + offset
+        );
+    }
+
+    private List<Driver> importDriversInternal(java.util.function.Function<Integer, String> uriBuilder) {
         List<Driver> result = new ArrayList<>();
 
         paginatedImport(
@@ -54,61 +49,43 @@ public class DriverImportService implements EntityImportService<DriverImportRequ
                           .getBody()
             ),
             wrapper -> wrapper != null ? wrapper.drivers() : List.of(),
-            req -> handleDriverReq(req, result),
-            PAGE_SIZE
+            req -> {
+                String rawCode = req.driverCode();
+                Optional<Driver> opt = driverRepository.findByDriverCode(rawCode)
+                    .or(() -> aliasRepository.findByAlias(rawCode).map(DriverAlias::getDriver));
+
+                LocalDate bd = driverMapper.parseBirthday(req.birthday());
+                if (opt.isEmpty() && bd != null) {
+                    opt = driverRepository.findByNameAndSurnameAndBirthday(req.name(), req.surname(), bd);
+                }
+                if (opt.isEmpty() && bd != null) {
+                    opt = driverRepository.findByNameAndSurnameAndBirthday(req.surname(), req.name(), bd);
+                }
+
+                Driver driver = opt.map(existing -> {
+                    String canonical = existing.getDriverCode();
+                    driverMapper.request(req, existing);
+                    existing.setDriverCode(canonical);
+                    driverRepository.save(existing);
+                    if (!canonical.equals(rawCode) && aliasRepository.findByAlias(rawCode).isEmpty()) {
+                        DriverAlias a = new DriverAlias();
+                        a.setAlias(rawCode);
+                        a.setDriver(existing);
+                        aliasRepository.save(a);
+                    }
+                    return existing;
+                }).orElseGet(() -> {
+                    Driver d = new Driver();
+                    d.setDriverCode(rawCode);
+                    driverMapper.request(req, d);
+                    return driverRepository.save(d);
+                });
+
+                result.add(driver);
+            },
+            importProperties.getPageSize()
         );
 
         return result;
-    }
-
-    private String buildDriversUri(int offset) {
-        return "/drivers?limit=" + PAGE_SIZE + "&offset=" + offset;
-    }
-
-    private void handleDriverReq(DriverImportRequest req, List<Driver> result) {
-        String rawCode = req.driverCode();
-    
-        Optional<Driver> opt = driverRepository.findByDriverCode(rawCode);
-    
-        if (opt.isEmpty()) {
-            opt = aliasRepository.findByAlias(rawCode)
-                                 .map(DriverAlias::getDriver);
-        }
-    
-        LocalDate bd = driverMapper.parseBirthday(req.birthday());
-        if (opt.isEmpty() && bd != null) {
-            opt = driverRepository.findByNameAndSurnameAndBirthday(
-                req.name(), req.surname(), bd
-            );
-        }
-        if (opt.isEmpty() && bd != null) {
-            opt = driverRepository.findByNameAndSurnameAndBirthday(
-                req.surname(), req.name(), bd
-            );
-        }
-    
-        Driver driver;
-        if (opt.isPresent()) {
-            driver = opt.get();
-            driverMapper.request(req, driver);
-            driverRepository.save(driver);
-    
-            boolean seenAsCode  = driver.getDriverCode().equals(rawCode);
-            boolean seenAsAlias = aliasRepository.findByAlias(rawCode).isPresent();
-            if (!seenAsCode && !seenAsAlias) {
-                DriverAlias alias = new DriverAlias();
-                alias.setAlias(rawCode);
-                alias.setDriver(driver);
-                aliasRepository.save(alias);
-            }
-    
-        } else {
-            driver = new Driver();
-            driver.setDriverCode(rawCode);
-            driverMapper.request(req, driver);
-            driverRepository.save(driver);
-        }
-    
-        result.add(driver);
     }
 }

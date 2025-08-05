@@ -2,7 +2,6 @@ package pitmotion.env.services.imports;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import pitmotion.env.debug.Debug;
@@ -10,7 +9,6 @@ import pitmotion.env.entities.Driver;
 import pitmotion.env.entities.DriverSeason;
 import pitmotion.env.entities.GpSession;
 import pitmotion.env.entities.SessionResult;
-import pitmotion.env.entities.Team;
 import pitmotion.env.enums.SessionType;
 import pitmotion.env.http.requests.imports.SessionResultImportRequest;
 import pitmotion.env.http.requests.wrappers.SessionResultsImportWrapper;
@@ -19,7 +17,6 @@ import pitmotion.env.repositories.DriverRepository;
 import pitmotion.env.repositories.DriverSeasonRepository;
 import pitmotion.env.repositories.GpSessionRepository;
 import pitmotion.env.repositories.SessionResultRepository;
-import pitmotion.env.repositories.TeamRepository;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -31,12 +28,10 @@ import java.util.Optional;
 
 @Service
 @AllArgsConstructor
-@Profile("import")
-public class SessionResultImportService implements EntityImportService<SessionResultImportRequest, SessionResultsImportWrapper> {
+public class SessionResultImportService extends EntityImportService<SessionResultImportRequest, SessionResultsImportWrapper> {
 
     private final RestClient restClient;
-    private final DriverRepository driverRepository;
-    private final TeamRepository teamRepository;
+    private final DriverRepository driverRepository;    
     private final DriverSeasonRepository driverSeasonRepository;
     private final SessionResultRepository sessionResultRepository;
     private final GpSessionRepository gpSessionRepository;
@@ -47,11 +42,7 @@ public class SessionResultImportService implements EntityImportService<SessionRe
         LocalDateTime sessionDateTime = LocalDateTime.of(gpSession.getDate(), gpSession.getTime());
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Europe/Brussels"));
         if (sessionDateTime.isAfter(now)) {
-            Debug.logger().dump(
-                "⚠️ Session skipped (future)",
-                "gpSessionId=" + gpSession.getId(),
-                "type=" + gpSession.getType().name()
-            );
+            Debug.logger().dump("⚠️ Session skipped (future)", "gpSessionId=" + gpSession.getId());
             return Collections.emptyList();
         }
 
@@ -59,12 +50,11 @@ public class SessionResultImportService implements EntityImportService<SessionRe
         int year = gpSession.getGrandPrix().getChampionship().getYear();
         int round = gpSession.getGrandPrix().getRound();
         SessionType sessType = gpSession.getType();
-        int limit = 100;
 
         paginatedImport(
             offset -> {
-                String path = sessType.getPath();
-                String uri = String.format("/%d/%d/%s?limit=%d&offset=%d", year, round, path, limit, offset);
+                String uri = String.format("/%d/%d/%s?limit=%d&offset=%d",
+                        year, round, sessType.getPath(), importProperties.getPageSize(), offset);
                 String raw = fetch(() ->
                     restClient.get()
                               .uri(uri)
@@ -79,13 +69,9 @@ public class SessionResultImportService implements EntityImportService<SessionRe
                     return null;
                 }
             },
-            wrapper -> {
-                if (wrapper == null) return List.of();
-                return wrapper.resultsForType(sessType);
-            },
+            wrapper -> wrapper != null ? wrapper.resultsForType(sessType) : List.of(),
             req -> {
                 if (req == null) return;
-
                 Optional<Driver> drvOpt = driverRepository.findByDriverCode(req.driverId());
                 if (drvOpt.isEmpty()) {
                     Debug.logger().dump("❌ Driver non trouvé", "driver=" + req.driverId());
@@ -93,46 +79,27 @@ public class SessionResultImportService implements EntityImportService<SessionRe
                 }
                 Driver driver = drvOpt.get();
 
-                Optional<Team> teamOpt = teamRepository.findByTeamCode(req.teamId());
-                Team team = teamOpt.orElse(null);
-                if (team == null) {
-                    Debug.logger().dump("⚠️ Team non trouvée (sera ignorée pour liaison)", "team=" + req.teamId());
-                }
-
                 Optional<DriverSeason> dsOpt = driverSeasonRepository.findByDriverAndYear(driver, year);
-                
-                if (dsOpt.isEmpty() && team != null) {
-                    dsOpt = driverSeasonRepository.findByDriverTeamAndYear(driver, team, year);
-                }
-                if (dsOpt.isEmpty()) {
-                    Debug.logger().dump(
-                        "❌ DriverSeason introuvable",
-                        "driver=" + driver.getDriverCode(),
-                        team != null ? "team=" + team.getTeamCode() : "team=<none>",
-                        "year=" + year
-                    );
-                    return;
-                }
-                DriverSeason ds = dsOpt.get();
+                Optional<SessionResult> existing = sessionResultRepository
+                    .findByGpSessionAndDriverSeason(gpSession, dsOpt.orElse(null));
 
-                SessionResult entity = sessionResultRepository
-                    .findByGpSessionAndDriverSeason(gpSession, ds)
-                    .orElseGet(SessionResult::new);
-                mapper.request(req, entity, gpSession, ds);
+                SessionResult entity = existing.orElseGet(SessionResult::new);
+                mapper.request(req, entity, gpSession, dsOpt.orElse(null));
                 sessionResultRepository.save(entity);
                 result.add(entity);
             },
-            limit
+            importProperties.getPageSize()
         );
 
         result.stream()
-        .filter(r -> r.getLapTimeSeconds() != null)
-        .min(Comparator.comparingInt(SessionResult::getLapTimeSeconds))
-        .ifPresent(fastest -> {
-            gpSession.setFastLapBy(fastest.getDriverSeason());
-            gpSessionRepository.save(gpSession);
-        });
+              .filter(r -> r.getLapTimeSeconds() != null)
+              .min(Comparator.comparingInt(SessionResult::getLapTimeSeconds))
+              .ifPresent(fastest -> {
+                  gpSession.setFastLapBy(fastest.getDriverSeason());
+                  gpSessionRepository.save(gpSession);
+              });
 
         return result;
     }
+
 }

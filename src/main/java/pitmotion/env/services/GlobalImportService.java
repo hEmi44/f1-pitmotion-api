@@ -1,7 +1,6 @@
 package pitmotion.env.services;
 
 import lombok.AllArgsConstructor;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import pitmotion.env.configurations.ImportProperties;
 import pitmotion.env.debug.Debug;
@@ -15,10 +14,9 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
-@Profile("import")
 public class GlobalImportService {
 
-    private final ImportProperties importProperties;
+    private final ImportProperties                importProperties;
     private final ChampionshipImportService       championshipImportService;
     private final DriverImportService             driverImportService;
     private final TeamImportService               teamImportService;

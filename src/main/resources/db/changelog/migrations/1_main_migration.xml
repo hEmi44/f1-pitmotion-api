@@ -20,6 +20,7 @@
     <createSequence sequenceName="sessions_results_seq" startValue="1"/>
     <createSequence sequenceName="circuits_seq" startValue="1"/>
     <createSequence sequenceName="users_seq" startValue="1"/>
+    <createSequence sequenceName="aliases_id_seq" startValue="1"/>
 
     <!-- Tables -->
     <createTable tableName="drivers">
@@ -170,17 +171,18 @@
       <column name="role" type="VARCHAR(255)"/>
     </createTable>
 
-    <createTable tableName="driver_aliases">
-      <column name="id" type="BIGINT">
-      <constraints primaryKey="true" nullable="false"/>
+    <createTable tableName="aliases">
+      <column name="id" type="BIGINT" autoIncrement="true">
+        <constraints primaryKey="true"/>
       </column>
-      <column name="alias" type="VARCHAR(50)">
-      <constraints nullable="false" unique="true"/>
+      <column name="alias" type="VARCHAR(255)">
+        <constraints nullable="false"/>
       </column>
-      <column name="driver_id" type="BIGINT">
-      <constraints nullable="false"
-                     foreignKeyName="fk_alias_driver"
-                     references="drivers(id)"/>
+      <column name="entity_type" type="VARCHAR(50)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="entity_id" type="BIGINT">
+        <constraints nullable="false"/>
       </column>
     </createTable>
 
@@ -258,5 +260,9 @@
     tableName="user_gp_tracker"
     columnNames="user_id,gp_id"
     constraintName="uk_user_gp_tracker_unique"/>
+    <addUniqueConstraint
+    tableName="aliases"
+    columnNames="entity_type, alias, entity_id"
+    constraintName="uk_alias_entity"/>
   </changeSet>
 </databaseChangeLog>

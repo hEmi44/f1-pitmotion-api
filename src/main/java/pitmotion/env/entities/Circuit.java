@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
+import pitmotion.env.entities.interfaces.Aliaseable;
+import pitmotion.env.enums.EntityType;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -12,7 +14,7 @@ import java.util.List;
 @Entity
 @Table(name = "circuits")
 @AllArgsConstructor @NoArgsConstructor @Getter @Setter
-public class Circuit {
+public class Circuit implements Aliaseable {
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "circuits_seq")
   @SequenceGenerator(
@@ -48,4 +50,19 @@ public class Circuit {
   @OneToMany(mappedBy = "circuit", cascade = CascadeType.ALL)
   @JsonBackReference
   private List<GrandPrix> grandPrix = new ArrayList<>();
+
+  @Override
+  public EntityType getEntityType() {
+      return EntityType.CIRCUIT;
+  }
+
+  @Override
+  public Long getId() {
+      return this.id;
+  }
+
+  @Override
+  public String getCode() {
+      return this.circuitCode;
+  }
 }

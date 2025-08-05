@@ -8,4 +8,5 @@ import pitmotion.env.entities.Circuit;
 public interface CircuitRepository extends JpaRepository<Circuit, Long> { 
     boolean existsByCircuitCode(String circuitCode);
     Optional<Circuit> findByCircuitCode(String circuitCode);
+    Optional<Circuit> findByUrl(String url);
 }

@@ -1,10 +1,8 @@
 package pitmotion.env.services.imports;
 
 import lombok.AllArgsConstructor;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
-
 import pitmotion.env.entities.Championship;
 import pitmotion.env.entities.Driver;
 import pitmotion.env.entities.DriverAlias;
@@ -26,8 +24,7 @@ import java.util.Optional;
 
 @Service
 @AllArgsConstructor
-@Profile("import")
-public class DriverSeasonImportService implements EntityImportService<DriverSeasonImportRequest, DriverSeasonsImportWrapper> {
+public class DriverSeasonImportService extends EntityImportService<DriverSeasonImportRequest, DriverSeasonsImportWrapper> {
 
     private final RestClient restClient;
     private final DriverRepository driverRepository;
@@ -46,7 +43,7 @@ public class DriverSeasonImportService implements EntityImportService<DriverSeas
 
         paginatedImport(
             offset -> restClient.get()
-                .uri("/" + year + "/drivers-championship")
+                .uri("/" + year + "/drivers-championship?limit=" + importProperties.getPageSize() + "&offset=" + offset)
                 .retrieve()
                 .toEntity(DriverSeasonsImportWrapper.class)
                 .getBody(),
@@ -94,7 +91,7 @@ public class DriverSeasonImportService implements EntityImportService<DriverSeas
                 result.add(driverSeasonRepository.save(entity));
             },
 
-            100
+            importProperties.getPageSize()
         );
 
         return result;

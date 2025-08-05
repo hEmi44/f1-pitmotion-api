@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
+import pitmotion.env.entities.interfaces.Aliaseable;
+import pitmotion.env.enums.EntityType;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +14,7 @@ import java.util.List;
 @Entity
 @Table(name = "drivers")
 @AllArgsConstructor @NoArgsConstructor @Getter @Setter
-public class Driver {
+public class Driver implements Aliaseable {
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "drivers_seq")
   @SequenceGenerator(
@@ -38,4 +41,19 @@ public class Driver {
   @OneToMany(mappedBy = "driver", cascade = CascadeType.ALL)
   @JsonBackReference
   private List<DriverSeason> driverSeasons = new ArrayList<>();
+
+  @Override
+  public EntityType getEntityType() {
+      return EntityType.DRIVER;
+  }
+
+  @Override
+  public Long getId() {
+      return this.id;
+  }
+
+  @Override
+  public String getCode() {
+      return this.driverCode;
+  }
 }
