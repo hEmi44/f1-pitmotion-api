@@ -12,3 +12,4 @@ public record SessionResultHeaderResource(
   String circuitCode,
   String circuitName
 ) {}
+

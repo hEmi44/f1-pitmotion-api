@@ -5,5 +5,5 @@ public record CircuitResource(
   String name,
   String country,
   String city,
-  Double lengthKm
+  Integer lengthKm
 ) {}
