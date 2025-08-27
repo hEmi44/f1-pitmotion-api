@@ -54,7 +54,7 @@ public class GrandPrix {
   @JsonBackReference
   private List<GpSession> sessions = new ArrayList<>();
 
-  @ManyToMany(mappedBy = "trackedGrandPrix")
-  @JsonBackReference
-  private List<User> usersTracking = new ArrayList<>();
+  @OneToMany(mappedBy = "grandPrix", cascade = CascadeType.ALL, orphanRemoval = true)
+  @JsonManagedReference("gp-trackers")
+  private List<UserGpTracker> trackers = new ArrayList<>();  
 }

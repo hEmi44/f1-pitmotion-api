@@ -158,6 +158,7 @@
     <createTable tableName="user_gp_tracker">
       <column name="user_id" type="BIGINT"/>
       <column name="gp_id" type="BIGINT"/>
+      <column name="notification_offset_minutes" type="INTEGER" defaultValueNumeric="10"/>
     </createTable>
 
     <createTable tableName="users">
