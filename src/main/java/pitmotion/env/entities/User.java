@@ -3,6 +3,7 @@ package pitmotion.env.entities;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
+import pitmotion.env.enums.UserRole;
 
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -14,19 +15,18 @@ import java.util.List;
 public class User {
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_seq")
-  @SequenceGenerator(
-      name = "users_seq",
-      sequenceName = "users_seq",
-      allocationSize = 1
-  )
+  @SequenceGenerator(name = "users_seq", sequenceName = "users_seq", allocationSize = 1)
   private Long id;
 
   private String username;
   private String email;
   private String password;
+
   @Column(name = "created_at")
   private LocalTime createdAt;
-  private String role;
+
+  @Enumerated(EnumType.STRING)
+  private UserRole role;
 
   @ManyToMany
   @JoinTable(
@@ -36,4 +36,9 @@ public class User {
   )
   @JsonManagedReference
   private List<GrandPrix> trackedGrandPrix = new ArrayList<>();
+
+  @PrePersist
+  public void prePersist() {
+    if (createdAt == null) createdAt = LocalTime.now();
+  }
 }

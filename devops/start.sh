@@ -18,7 +18,7 @@ CURRENT_YEAR=$(date +%Y)
 
 for arg in "$@"; do
   case "$arg" in
-    --import|--queue|--scheduler)
+    --import|--queue|--scheduler|--http)
       PROFILE="${arg#--}"
       ;;
     --all)
