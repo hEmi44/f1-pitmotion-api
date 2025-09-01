@@ -1,4 +1,4 @@
-package pitmotion.env.scheduler;
+package pitmotion.env.schedulers;
 
 import java.time.LocalDate;
 
