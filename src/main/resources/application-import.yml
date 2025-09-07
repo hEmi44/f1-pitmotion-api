@@ -3,3 +3,5 @@ logging:
     name: logs/import.log
   level:
     root: INFO
+server:
+  port: 8083

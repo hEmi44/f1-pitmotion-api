@@ -3,3 +3,5 @@ logging:
     name: logs/scheduler.log
   level:
     root: INFO
+server:
+  port: 8082

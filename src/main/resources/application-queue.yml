@@ -3,6 +3,8 @@ logging:
     name: logs/queue.log
   level:
     root: INFO
+server:
+  port: 8081
 spring:
   mail:
     host: smtp.gmail.com
