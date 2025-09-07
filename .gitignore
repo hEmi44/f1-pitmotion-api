@@ -5,6 +5,7 @@ target/
 !**/src/test/**/target/
 .m2
 .DS_Store
+*.pem
 
 ### STS ###
 .apt_generated
