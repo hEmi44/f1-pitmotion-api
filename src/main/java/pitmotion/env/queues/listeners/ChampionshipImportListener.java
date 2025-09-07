@@ -5,13 +5,13 @@ import org.springframework.stereotype.Component;
 
 import pitmotion.env.debug.Debug;
 import pitmotion.env.enums.EventName;
-import pitmotion.env.enums.ProfileName;
 import pitmotion.env.queues.events.ChampionshipImportEvent;
 import pitmotion.env.services.GlobalImportService;
 import pitmotion.env.annotations.KafkaRetryableListener;
+import pitmotion.env.enums.ProfileName;
 
-@Component
 @Profile(ProfileName.QUEUE)
+@Component
 public class ChampionshipImportListener implements Listener<ChampionshipImportEvent> {
 
     private final GlobalImportService globalImportService;

@@ -5,15 +5,3 @@ logging:
     root: INFO
 server:
   port: 8081
-spring:
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${EMAIL_MAIL}
-    password: ${EMAIL_MAIL_PASSWORD}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true

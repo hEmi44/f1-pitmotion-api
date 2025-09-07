@@ -9,6 +9,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import pitmotion.env.debug.Debug;
 import pitmotion.env.enums.ProfileName;
 import pitmotion.env.enums.SessionType;
 import pitmotion.env.queues.emitters.Emitter;
@@ -44,21 +45,20 @@ public class SessionNotificationScheduler {
   }
 
   @Scheduled(cron = "0 * * * * *", zone = "Europe/Brussels")
-  @Transactional(readOnly = true) // garde l'EM ouvert pour les relations LAZY (user/email, grandPrix/name)
+  @Transactional(readOnly = true) 
   public void run() {
-    var today = LocalDate.now(ZONE);   // pour les requêtes JPA sur champs DATE
-    var now   = Instant.now();         // pour la fenêtre de tir
+    Debug.logger().dump("Running session notification scheduler");
+    var today = LocalDate.now(ZONE);
+    var now   = Instant.now();
 
     var nextGp = grandPrixRepository
         .findFirstByStartingDateAfterOrderByStartingDateAsc(today)
         .orElse(null);
     if (nextGp == null) return;
 
-    // On récupère toutes les sessions du GP (triées) et on calcule la fenêtre en mémoire
     var sessions = gpSessionRepository.findByGrandPrix_IdOrderByDateAsc(nextGp.getId());
     if (sessions == null || sessions.isEmpty()) return;
 
-    // Tous les trackers pour ce GP (plus de "enabled")
     var trackers = trackerRepository.findByGrandPrix_Id(nextGp.getId());
     if (trackers == null || trackers.isEmpty()) return;
 
