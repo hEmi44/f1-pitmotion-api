@@ -20,7 +20,7 @@ services:
       - accessible
     labels:
       - traefik.enable=true
-      - traefik.http.routers.games.rule=Host(``)
+      - traefik.http.routers.games.rule=Host(`pitmotion.cloudns.pro`)
       - traefik.http.routers.games.tls=true
   # mysql:
   #   image: "mysql/mysql-server:8.0"
