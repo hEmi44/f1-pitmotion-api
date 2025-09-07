@@ -58,6 +58,6 @@ public class TeamService {
             && ds.getTeamSeason().getChampionship() != null)
         .collect(Collectors.groupingBy(ds -> ds.getTeamSeason().getChampionship().getYear()));
 
-    return mapper.toTeamResource(team, (Map) byYear);
+    return mapper.toTeamResource(team, byYear);
   }
 }

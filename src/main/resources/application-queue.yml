@@ -3,3 +3,15 @@ logging:
     name: logs/queue.log
   level:
     root: INFO
+spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${EMAIL_MAIL}
+    password: ${EMAIL_MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true

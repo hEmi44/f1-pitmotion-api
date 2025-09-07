@@ -13,4 +13,5 @@ public interface GpSessionRepository extends JpaRepository<GpSession, Long> {
     Optional<GpSession> findByGrandPrixAndType(GrandPrix grandPrix, SessionType type);
     List<GpSession> findByGrandPrix(GrandPrix grandPrix);
     List<GpSession> findByGrandPrixIdAndDateAfterOrderByDateAsc(Long gpId, Instant now);
+    List<GpSession> findByGrandPrix_IdOrderByDateAsc(Long gpId);
 }

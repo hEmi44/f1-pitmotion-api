@@ -2,9 +2,13 @@ package pitmotion.env.http.controllers;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import pitmotion.env.enums.ProfileName;
 import pitmotion.env.http.requests.trackers.CreateTrackerRequest;
 import pitmotion.env.http.requests.trackers.DeleteTrackerRequest;
 import pitmotion.env.http.requests.trackers.UpdateTrackerRequest;
@@ -17,6 +21,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/trackers")
 @RequiredArgsConstructor
+@Profile(ProfileName.HTTP)
 public class TrackerController {
 
     private final TrackerService service;
