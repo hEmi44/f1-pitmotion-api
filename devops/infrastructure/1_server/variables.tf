@@ -29,7 +29,7 @@ variable "SERVER_CPU_COUNT" {
   type = number
   description = "Number of CPU units to allocate to server"
   nullable = true
-  default = 1
+  default = 2
 }
 
 variable "SERVER_RAM_IN_GBS" {
@@ -38,7 +38,7 @@ variable "SERVER_RAM_IN_GBS" {
   type = number
   description = "RAM quantity to allocate to server"
   nullable = true
-  default = 6
+  default = 12
 }
 
 variable "SERVER_OPERATING_SYSTEM_NAME" {
